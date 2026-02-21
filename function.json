@@ -1,0 +1,175 @@
+{
+  "type": "scalar.function",
+  "input_schema": {
+    "type": "object",
+    "description": "Input for evaluating a cat's proportional occupation and commanding presence within an image frame. The image will be assessed across three qualities — proportional scale, completeness of form, and visual authority — to produce a single scalar score representing how fully and deliberately the cat commands its frame.",
+    "properties": {
+      "image": {
+        "type": "image",
+        "description": "A photograph or image containing a cat whose frame presence will be evaluated. The image may come from any source — a composed portrait, a casual snapshot, a surveillance still, or any other origin. The function concerns itself only with the spatial and compositional relationship between the cat and the rectangular boundaries of this image: how much of the frame the cat fills, whether the cat's body appears whole and uninterrupted, and whether the cat feels deliberately and comfortably situated within the composition."
+      }
+    },
+    "required": [
+      "image"
+    ]
+  },
+  "tasks": [
+    {
+      "type": "vector.completion",
+      "skip": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "I'm reviewing cat photos for a gallery exhibition. For each photo, I need to know how much of the frame the cat fills. How would you describe the cat's size relative to the frame in this photo?"
+            },
+            {
+              "$jmespath": "input.image"
+            }
+          ]
+        }
+      ],
+      "responses": [
+        [
+          {
+            "type": "text",
+            "text": "The cat commands nearly the entire frame — it fills the vast majority of the image with very little empty space around it."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "The cat takes up a large portion of the frame — it's clearly the dominant subject and fills the image generously."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "The cat occupies a moderate portion of the frame — it's visible and recognizable but there's quite a bit of space around it."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "The cat is fairly small within the frame — it takes up only a minor portion of the available space."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "The cat is tiny in the frame — it occupies just a sliver of the image and is dwarfed by the surrounding space."
+          }
+        ]
+      ],
+      "output": {
+        "$starlark": "output['scores'][0] * 1.0 + output['scores'][1] * 0.75 + output['scores'][2] * 0.5 + output['scores'][3] * 0.25 + output['scores'][4] * 0.0"
+      }
+    },
+    {
+      "type": "vector.completion",
+      "skip": null,
+      "messages": [
+        {
+          "role": "developer",
+          "content": [
+            {
+              "type": "text",
+              "text": "You are a photo editor reviewing images of cats. When asked, assess whether the cat's body appears whole and complete within the frame, or whether the edges of the image have cropped or severed parts of the cat's body. A cat whose limbs are naturally tucked beneath its own body is still complete — what matters is whether the frame itself has interrupted the cat."
+            }
+          ]
+        },
+        {
+          "role": "user",
+          "content": [
+            {
+              "$jmespath": "input.image"
+            },
+            {
+              "type": "text",
+              "text": "Does the cat in this photo appear whole and complete within the frame, or has the frame cut off parts of its body?"
+            }
+          ]
+        }
+      ],
+      "responses": [
+        [
+          {
+            "type": "text",
+            "text": "The cat's body is fully contained within the frame. The entire cat is visible and nothing has been cut off — it reads as a complete, whole subject."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "The cat is mostly complete within the frame. There may be very minor cropping at the edges, but the cat still reads as a whole subject overall."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "The frame has noticeably cropped the cat's body. Significant parts are cut off, and the cat feels somewhat incomplete as a result."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "The cat's body is severely cut off by the frame. Large portions are missing, leaving the subject feeling fragmented and incomplete."
+          }
+        ]
+      ],
+      "output": {
+        "$starlark": "output['scores'][0] * 1.0 + output['scores'][1] * 0.667 + output['scores'][2] * 0.333 + output['scores'][3] * 0.0"
+      }
+    },
+    {
+      "type": "vector.completion",
+      "skip": null,
+      "messages": [
+        {
+          "role": "user",
+          "content": [
+            {
+              "type": "text",
+              "text": "I'm selecting the best cat photo for a magazine cover. The cat needs to feel like it owns the frame — like the photo was composed specifically to showcase the cat. Look at this photo and tell me: does the cat feel deliberately and commandingly placed within the composition, or does it feel like an afterthought?"
+            },
+            {
+              "$jmespath": "input.image"
+            }
+          ]
+        }
+      ],
+      "responses": [
+        [
+          {
+            "type": "text",
+            "text": "This cat absolutely owns the frame. It's placed with clear purpose — the composition feels deliberate, with balanced space around the subject. The cat commands the viewer's attention as though the entire image was built around it."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "The cat is reasonably well-placed within the frame. Its position feels somewhat intentional, though the composition isn't perfectly balanced. The cat has presence but doesn't fully command the space."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "The cat's placement feels incidental rather than deliberate. It's positioned awkwardly — perhaps pushed to one side or framed in a way that doesn't serve the subject. The cat is present but doesn't command the composition."
+          }
+        ],
+        [
+          {
+            "type": "text",
+            "text": "The cat feels like an afterthought in this frame. Its placement is haphazard — crammed into a corner, caught at an awkward angle, or lost in a composition that clearly wasn't arranged around it."
+          }
+        ]
+      ],
+      "output": {
+        "$starlark": "output['scores'][0] * 1.0 + output['scores'][1] * 0.667 + output['scores'][2] * 0.333 + output['scores'][3] * 0.0"
+      }
+    }
+  ],
+  "description": "Scores how commandingly a cat occupies an image frame (0 to 1) by evaluating three qualities: proportional scale (how much of the frame the cat fills), completeness of form (whether the cat's body is whole or cropped), and visual authority (whether the cat feels deliberately placed within the composition)."
+}
